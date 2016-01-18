@@ -49,7 +49,16 @@ namespace ServerEvents
 		public event EventHandler OnServerReset;
 
 		public delegate void PlayerLogin(TSPlayer player, int loginStreak);
+		/// <summary>
+		/// Event fired when a player logs in. Use this event to retrieve login streak information
+		/// </summary>
 		public event PlayerLogin OnPlayerLogin;
+
+		/// <summary>
+		/// Event fired before database tables are created. Add tables when this event is fired.
+		/// object parameter is a SqlTableCreator instance
+		/// </summary>
+		public event EventHandler PreDbTableCreation;
 
 		internal Database db;
 
@@ -62,7 +71,7 @@ namespace ServerEvents
 		public override void Initialize()
 		{
 			db = Database.InitDb("ServerEvents");
-
+			
 			TShockAPI.Hooks.PlayerHooks.PlayerPostLogin += PlayerPostLogin;
 			Start();
 		}
@@ -163,7 +172,12 @@ namespace ServerEvents
 		{
 			return db.GetLoginStreak(userID);
 		}
-		
+
+		public void AddTable(SqlTable table)
+		{
+			db.AddTable(table);
+		}
+
 		private void Events_OnReset(object sender, EventArgs e)
 		{
 			//Reset daily login metrics
@@ -176,7 +190,16 @@ namespace ServerEvents
 				onReset(null, EventArgs.Empty);
 			}
 		}
-		
+
+		private void Db_PreTableCreation(object sender, EventArgs e)
+		{
+			EventHandler preTableCreation = PreDbTableCreation;
+			if (preTableCreation != null)
+			{
+				preTableCreation(sender, e);
+			}
+		}
+
 		private void PlayerPostLogin(TShockAPI.Hooks.PlayerPostLoginEventArgs e)
 		{
 			//if the player is not in the db, add them

@@ -11,15 +11,14 @@ namespace ServerEvents
 	public class Database
 	{
 		private IDbConnection _db;
+		private SqlTableCreator _tableCreator;
 
-		public bool MySQL { get { return _db.GetSqlType() == SqlType.Mysql; } }
-
-		public Database(IDbConnection db)
+		private Database(IDbConnection db)
 		{
 			_db = db;
 
 			//Define a table creator that will be responsible for ensuring the database table exists
-			var sqlCreator = new SqlTableCreator(_db,
+			_tableCreator = new SqlTableCreator(_db,
 				_db.GetSqlType() == SqlType.Sqlite
 					? (IQueryBuilder)new SqliteQueryCreator()
 					: new MysqlQueryCreator());
@@ -30,9 +29,7 @@ namespace ServerEvents
 				new SqlColumn("DailyLogIn", MySqlDbType.Int32) { DefaultValue = "0" },
 				new SqlColumn("DailyLogInStreak", MySqlDbType.Int32));
 
-			//Create the table if it doesn't exist, update the structure if it exists but is not the same as
-			//the table defined above, or do nothing if the table exists and is correctly structured
-			sqlCreator.EnsureTableStructure(table);
+			_tableCreator.EnsureTableStructure(table);
 		}
 
 		/// <summary>
@@ -77,14 +74,22 @@ namespace ServerEvents
 			return new Database(db);
 		}
 
-		internal QueryResult QueryReader(string query, params object[] args)
+		public QueryResult QueryReader(string query, params object[] args)
 		{
 			return _db.QueryReader(query, args);
 		}
 
-		internal int Query(string query, params object[] args)
+		public int Query(string query, params object[] args)
 		{
 			return _db.Query(query, args);
+		}
+
+		internal void AddTable(SqlTable table)
+		{
+			if (!_tableCreator.EnsureTableStructure(table))
+			{
+				throw new Exception($"Failed to create table '{table.Name}'");
+			}
 		}
 
 		internal bool Contains(int userID)

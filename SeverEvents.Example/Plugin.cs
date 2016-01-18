@@ -3,6 +3,7 @@ using System;
 using System.Linq;
 using Terraria;
 using TerrariaApi.Server;
+using TShockAPI.DB;
 
 namespace SeverEvents.Example
 {
@@ -42,8 +43,10 @@ namespace SeverEvents.Example
 		public override void Initialize()
 		{
 			EventsPlugin = (ServerEventsPlugin)ServerApi.Plugins.Select(p => p.Plugin).First(plugin => plugin.Name == "Server Events");
+			EventsPlugin.AddTable(
+				new SqlTable("ExampleTable",
+					new SqlColumn("ExampleColumn", MySql.Data.MySqlClient.MySqlDbType.Int32)));
 
-			EventsPlugin.Start();
 			EventsPlugin.SetServerResetTime(0, 0);
 
 			EventsPlugin.OnPlayerLogin += EventsPlugin_OnPlayerLogin;
