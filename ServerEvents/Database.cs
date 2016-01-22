@@ -12,6 +12,7 @@ namespace ServerEvents
 	{
 		private IDbConnection _db;
 		private SqlTableCreator _tableCreator;
+		private string timeStr { get { return _db is MySqlConnection ? "UTC_TIMESTAMP()" : "datetime('now')"; } }
 
 		private Database(IDbConnection db)
 		{
@@ -26,6 +27,7 @@ namespace ServerEvents
 			//Define the table
 			var table = new SqlTable("ServerEvents",
 				new SqlColumn("UserID", MySqlDbType.Int32) { AutoIncrement = true, Primary = true },
+				new SqlColumn("LastLoginTime", MySqlDbType.VarChar),
 				new SqlColumn("DailyLogIn", MySqlDbType.Int32) { DefaultValue = "0" },
 				new SqlColumn("DailyLogInStreak", MySqlDbType.Int32));
 
@@ -102,14 +104,43 @@ namespace ServerEvents
 
 		internal void RegisterNewUser(int userID)
 		{
-			_db.Query("INSERT INTO ServerEvents (UserID, DailyLogIn, DailyLogInStreak) VALUES (@0, 1, 1)",
+			_db.Query($"INSERT INTO ServerEvents (UserID, LastLoginTime, DailyLogIn, DailyLogInStreak) VALUES (@0, {timeStr}, 1, 1)",
 				userID);
 		}
 
 		internal void UpdateLogin(int userID)
 		{
-            _db.Query("UPDATE ServerEvents SET DailyLogIn = 1, DailyLogInStreak = DailyLogInStreak + 1 WHERE UserID = @0",
+            _db.Query($"UPDATE ServerEvents SET DailyLogIn = 1, DailyLogInStreak = DailyLogInStreak + 1, LastLoginTime = {timeStr} WHERE UserID = @0",
 				userID);
+		}
+
+		internal LoginData GetLoginData(int userID)
+		{
+			using (QueryResult res = _db.QueryReader("SELECT * FROM ServerEvents WHERE UserID = @0", userID))
+			{
+				if (res.Read())
+				{
+					string time = res.Get<string>("LastLoginTime");
+					int streak = res.Get<int>("DailyLogInStreak");
+					bool loggedIn = res.Get<int>("DailyLogIn") == 1;
+
+					return new LoginData(userID, time, streak, loggedIn);
+				}
+
+				return default(LoginData);
+			}
+		}
+
+		internal string GetLastLoginTime(int userID)
+		{
+			using (QueryResult res = _db.QueryReader("SELECT LastLoginTime FROM ServerEvents WHERE UserID = @0", userID))
+			{
+				if (res.Read())
+				{
+					return res.Get<string>("LastLoginTime");
+				}
+				return string.Empty;
+			}
 		}
 
 		internal bool HasLoggedIn(int userID)

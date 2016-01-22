@@ -50,7 +50,19 @@ namespace ServerEvents
 
 		private void Timer_Elapsed(object sender, ElapsedEventArgs e)
 		{
-			((CallbackTimer)sender).Callback.Invoke();
+			if (sender == null)
+			{
+				return;
+			}
+
+			CallbackTimer timer = (CallbackTimer)sender;
+
+			if (timer == null || !timer.Enabled)
+			{
+				return;
+			}
+
+			timer.Callback.Invoke();
 		}
 
 		internal void SetResetTime(string time)
@@ -81,6 +93,7 @@ namespace ServerEvents
 			CallbackTimer t = new CallbackTimer(seconds * 1000, callback);
 			t.Elapsed += Timer_Elapsed;
 
+			//Get the first null index, or append to the list if there isn't one
 			handle = Timers.IndexOf(null);
 			if (handle == -1)
 			{

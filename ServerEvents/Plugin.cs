@@ -48,7 +48,7 @@ namespace ServerEvents
 		/// </summary>
 		public event EventHandler OnServerReset;
 
-		public delegate void PlayerLogin(TSPlayer player, int loginStreak);
+		public delegate void PlayerLogin(TSPlayer player, LoginData loginData);
 		/// <summary>
 		/// Event fired when a player logs in. Use this event to retrieve login streak information
 		/// </summary>
@@ -79,7 +79,7 @@ namespace ServerEvents
 		/// <summary>
 		/// Starts all internal timing
 		/// </summary>
-		public void Start()
+		internal void Start()
 		{
 			//If already started, don't start again
 			if (_started)
@@ -134,6 +134,26 @@ namespace ServerEvents
 		}
 
 		/// <summary>
+		/// Returns the <see cref="LoginData"/> assosciated with the given user
+		/// </summary>
+		/// <param name="user"></param>
+		/// <returns></returns>
+		public LoginData GetLoginData(User user)
+		{
+			return GetLoginData(user.ID);
+		}
+
+		/// <summary>
+		/// Returns the <see cref="LoginData"/> assosciated with the given user ID
+		/// </summary>
+		/// <param name="userID"></param>
+		/// <returns></returns>
+		public LoginData GetLoginData(int userID)
+		{
+			return db.GetLoginData(userID);
+		}
+
+		/// <summary>
 		/// Returns true if the user has logged in during the current day. Otherwise returns false.
 		/// </summary>
 		/// <param name="user"></param>
@@ -173,9 +193,35 @@ namespace ServerEvents
 			return db.GetLoginStreak(userID);
 		}
 
-		public void AddTable(SqlTable table)
+		/// <summary>
+		/// Adds a new table into the database
+		/// </summary>
+		/// <param name="table"></param>
+		public void AddTableToDb(SqlTable table)
 		{
 			db.AddTable(table);
+		}
+
+		/// <summary>
+		/// Query the database, returning the number of rows altered
+		/// </summary>
+		/// <param name="query"></param>
+		/// <param name="args"></param>
+		/// <returns></returns>
+		public int QueryDb(string query, params object[] args)
+		{
+			return db.Query(query, args);
+		}
+
+		/// <summary>
+		/// Query the database, returning a <see cref="QueryResult"/> object containing result data
+		/// </summary>
+		/// <param name="query"></param>
+		/// <param name="args"></param>
+		/// <returns></returns>
+		public QueryResult ReadFromDb(string query, params object[] args)
+		{
+			return db.QueryReader(query, args);
 		}
 
 		private void Events_OnReset(object sender, EventArgs e)
@@ -219,7 +265,7 @@ namespace ServerEvents
 			if (playerLogin != null)
 			{
 				//fire the OnPlayerLogin event
-				playerLogin(e.Player, db.GetLoginStreak(e.Player.User.ID));
+				playerLogin(e.Player, db.GetLoginData(e.Player.User.ID));
 			}
 		}
 

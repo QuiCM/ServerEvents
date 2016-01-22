@@ -66,6 +66,7 @@
     <Compile Include="CallbackTimer.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="LoginData.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
