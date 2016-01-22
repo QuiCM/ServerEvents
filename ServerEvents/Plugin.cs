@@ -76,6 +76,7 @@ namespace ServerEvents
 		{
 			TShock.RestApi.Register(new SecureRestCommand("/ServerEvents/logindata", GetLoginData, "serverevents.rest.logindata"));
 			TShock.RestApi.Register(new RestCommand("/ServerEvents/insecure/logindata", GetLoginData));
+			TShock.Initialized -= TShock_Initialized;
 		}
 
 		/// <summary>
@@ -309,6 +310,15 @@ namespace ServerEvents
 				return hours.ToString();
 			}
 			return $"0{hours}";
+		}
+
+		protected override void Dispose(bool disposing)
+		{
+			if (disposing)
+			{
+				TShockAPI.Hooks.PlayerHooks.PlayerPostLogin -= PlayerPostLogin;
+			}
+			base.Dispose(disposing);
 		}
 	}
 }
