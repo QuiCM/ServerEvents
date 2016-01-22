@@ -1,6 +1,5 @@
 ﻿using Rests;
 using System;
-using System.Threading;
 using Terraria;
 using TerrariaApi.Server;
 using TShockAPI;
@@ -74,8 +73,7 @@ namespace ServerEvents
 
 		private void TShock_Initialized()
 		{
-			TShock.RestApi.Register(new SecureRestCommand("/ServerEvents/logindata", GetLoginData, "serverevents.rest.logindata"));
-			TShock.RestApi.Register(new RestCommand("/ServerEvents/insecure/logindata", GetLoginData));
+			TShock.RestApi.Register(new RestCommand("/ServerEvents/logindata", GetLoginData));
 			TShock.Initialized -= TShock_Initialized;
 		}
 
@@ -95,6 +93,7 @@ namespace ServerEvents
 			_events = new EventTimers();
 			_events.OnReset += Events_OnReset;
 			_events.Start();
+			SetServerResetTime(0, 0);
 		}
 
 		/// <summary>
