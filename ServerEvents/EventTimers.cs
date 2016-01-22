@@ -4,7 +4,7 @@ using System.Timers;
 
 namespace ServerEvents
 {
-	internal class EventThread
+	internal class EventTimers
 	{
 		/// <summary>
 		/// Time at which the server will reset
@@ -114,6 +114,19 @@ namespace ServerEvents
 			Timers[handle].Dispose();
 			Timers[handle] = null;
 			handle = -1;
+		}
+
+		public void Dispose()
+		{
+			for (int i = 0; i < Timers.Count; i++)
+			{
+				if (Timers[i] != null)
+				{
+					Timers[i].Stop();
+					Timers[i].Dispose();
+				}
+			}
+			Timers = null;
 		}
 	}
 }

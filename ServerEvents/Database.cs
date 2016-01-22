@@ -177,5 +177,11 @@ namespace ServerEvents
 			_db.Query("UPDATE ServerEvents SET DailyLogInStreak = 0 WHERE DailyLogIn = 0");
             _db.Query("UPDATE ServerEvents SET DailyLogIn = 0");
 		}
+
+		public void Dispose()
+		{
+			_tableCreator = null;
+			_db.Dispose();
+		}
 	}
 }

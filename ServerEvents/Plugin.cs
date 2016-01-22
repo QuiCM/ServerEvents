@@ -42,8 +42,8 @@ namespace ServerEvents
 		/// <summary>
 		/// Event thread - handles the server reset as well as de/registering methods to be run on timers
 		/// </summary>
-		private EventThread _events;
-		
+		private EventTimers _events;
+
 		/// <summary>
 		/// Event fired when the server hits its daily reset
 		/// </summary>
@@ -92,12 +92,9 @@ namespace ServerEvents
 			_started = true;
 
 			//Create a new instance of EventThread and hook into the reset event
-			_events = new EventThread();
+			_events = new EventTimers();
 			_events.OnReset += Events_OnReset;
-
-			//Start the thread
-			Thread t = new Thread(new ThreadStart(_events.Start));
-			t.Start();
+			_events.Start();
 		}
 
 		/// <summary>
@@ -317,6 +314,8 @@ namespace ServerEvents
 			if (disposing)
 			{
 				TShockAPI.Hooks.PlayerHooks.PlayerPostLogin -= PlayerPostLogin;
+				_events.Dispose();
+				db.Dispose();
 			}
 			base.Dispose(disposing);
 		}

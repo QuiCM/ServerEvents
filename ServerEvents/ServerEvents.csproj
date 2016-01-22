@@ -65,7 +65,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Database.cs" />
-    <Compile Include="EventThread.cs" />
+    <Compile Include="EventTimers.cs" />
     <Compile Include="CallbackTimer.cs">
       <SubType>Component</SubType>
     </Compile>
