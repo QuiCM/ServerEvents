@@ -3,7 +3,7 @@
 	/// <summary>
 	/// Represents a user's database record
 	/// </summary>
-	public struct LoginData
+	public class LoginData
 	{
 		/// <summary>
 		/// ID of user this data belongs to
@@ -21,6 +21,14 @@
 		/// Whether or not the user has logged in today
 		/// </summary>
 		public bool HasLoggedIn;
+
+		internal LoginData()
+		{
+			UserID = -1;
+			LastLoginDateString = "Unknown";
+			LoginStreak = 0;
+			HasLoggedIn = false;
+		}
 
 		internal LoginData(int userID, string loginDate, int streak, bool loggedIn)
 		{

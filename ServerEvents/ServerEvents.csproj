@@ -34,6 +34,9 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="HttpServer">
+      <HintPath>..\Refs\HttpServer.dll</HintPath>
+    </Reference>
     <Reference Include="Mono.Data.Sqlite">
       <HintPath>..\Refs\Mono.Data.Sqlite.dll</HintPath>
     </Reference>

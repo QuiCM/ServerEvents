@@ -114,6 +114,11 @@ namespace ServerEvents
 				userID);
 		}
 
+		internal void UpdateTime(int userID)
+		{
+			_db.Query($"UPDATE ServerEvents SET LastLoginTime = {timeStr} WHERE UserID = @0", userID);
+		}
+
 		internal LoginData GetLoginData(int userID)
 		{
 			using (QueryResult res = _db.QueryReader("SELECT * FROM ServerEvents WHERE UserID = @0", userID))
@@ -127,7 +132,7 @@ namespace ServerEvents
 					return new LoginData(userID, time, streak, loggedIn);
 				}
 
-				return default(LoginData);
+				return new LoginData();
 			}
 		}
 

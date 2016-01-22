@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Rests;
+using System;
 using System.Threading;
 using Terraria;
 using TerrariaApi.Server;
@@ -54,12 +55,6 @@ namespace ServerEvents
 		/// </summary>
 		public event PlayerLogin OnPlayerLogin;
 
-		/// <summary>
-		/// Event fired before database tables are created. Add tables when this event is fired.
-		/// object parameter is a SqlTableCreator instance
-		/// </summary>
-		public event EventHandler PreDbTableCreation;
-
 		internal Database db;
 
 		public ServerEventsPlugin(Main game) : base(game)
@@ -73,7 +68,14 @@ namespace ServerEvents
 			db = Database.InitDb("ServerEvents");
 			
 			TShockAPI.Hooks.PlayerHooks.PlayerPostLogin += PlayerPostLogin;
+			TShock.Initialized += TShock_Initialized;
 			Start();
+		}
+
+		private void TShock_Initialized()
+		{
+			TShock.RestApi.Register(new SecureRestCommand("/ServerEvents/logindata", GetLoginData, "serverevents.rest.logindata"));
+			TShock.RestApi.Register(new RestCommand("/ServerEvents/insecure/logindata", GetLoginData));
 		}
 
 		/// <summary>
@@ -224,6 +226,25 @@ namespace ServerEvents
 			return db.QueryReader(query, args);
 		}
 
+		public RestObject GetLoginData(RestRequestArgs args)
+		{
+			string idStr = args.Parameters["id"];
+			if (string.IsNullOrWhiteSpace(idStr))
+			{
+				return new RestObject("400") { Error = "Missing or empty parameter 'id'" };
+			}
+
+			int id;
+			if (!int.TryParse(idStr, out id))
+			{
+				return new RestObject("400") { Error = "Invalid id supplied. ID must be a valid user ID" };
+			}
+
+			LoginData data = db.GetLoginData(id);
+
+			return new RestObject() { { "response", data } };
+		}
+
 		private void Events_OnReset(object sender, EventArgs e)
 		{
 			//Reset daily login metrics
@@ -234,15 +255,6 @@ namespace ServerEvents
 			if (onReset != null)
 			{
 				onReset(null, EventArgs.Empty);
-			}
-		}
-
-		private void Db_PreTableCreation(object sender, EventArgs e)
-		{
-			EventHandler preTableCreation = PreDbTableCreation;
-			if (preTableCreation != null)
-			{
-				preTableCreation(sender, e);
 			}
 		}
 
@@ -259,6 +271,10 @@ namespace ServerEvents
 			{
 				//update their login streak and daily login
 				db.UpdateLogin(e.Player.User.ID);
+			}
+			else
+			{
+				db.UpdateTime(e.Player.User.ID);
 			}
 			
 			PlayerLogin playerLogin = OnPlayerLogin;
